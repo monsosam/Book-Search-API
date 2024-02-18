@@ -1,16 +1,15 @@
 const { User } = require('../models');
 const { signToken } = require('../utils/auth');
-const { AuthenticationError } = require('@apollo/server');
+const { AuthenticationError } = require('apollo-server-express');
 
 const resolvers = {
     Query: {
-      me: async (parent, args, context) => {
+      me: async (_, _, context) => {
         if (!context.user) {
           throw new AuthenticationError('Not authenticated');
         }
-  
         try {
-          const user = await User.findById(context.user._id);
+          const user = await User.findOne({ _id: context.user._id }).populate("savedBooks");
           return user;
         } catch (error) {
           throw new Error('Error fetching user');
@@ -19,7 +18,7 @@ const resolvers = {
     },
 
     Mutation: {
-      login: async (parent, { email, password }) => {
+      login: async (_, { email, password }) => {
         try {
           const user = await User.findOne({ email });
   
@@ -34,7 +33,8 @@ const resolvers = {
           throw new Error('Error during login');
         }
       },
-      addUser: async (parent, { username, email, password }) => {
+
+      addUser: async (_, { username, email, password }) => {
         try {
           const user = await User.create({ username, email, password });
           const token = signToken(user);
@@ -44,44 +44,36 @@ const resolvers = {
           throw new Error('Error during user creation');
         }
       },
-      saveBook: async (parent, { authors, description, title, bookId, image, link }, context) => {
+
+      saveBook: async (_, { input }, context) => {
         if (!context.user) {
           throw new AuthenticationError('Not authenticated');
         }
-  
         try {
           const updatedUser = await User.findByIdAndUpdate(
-            context.user._id,
-            {
-              $addToSet: {
-                savedBooks: { authors, description, title, bookId, image, link },
-              },
-            },
-            { new: true }
+            { _id: context.user._id },
+            { $push: { savedBooks: input } },
+            { new: true, runValidators: true }
           );
-  
           return updatedUser;
+
         } catch (error) {
           throw new Error('Error saving book');
         }
       },
-      removeBook: async (parent, { bookId }, context) => {
+
+      removeBook: async (_, { input }, context) => {
         if (!context.user) {
           throw new AuthenticationError('Not authenticated');
         }
-  
         try {
           const updatedUser = await User.findByIdAndUpdate(
-            context.user._id,
-            {
-              $pull: {
-                savedBooks: { bookId },
-              },
-            },
+            { _id: context.user._id },
+            { $pull: { savedBooks: { input } } },
             { new: true }
           );
-  
           return updatedUser;
+
         } catch (error) {
           throw new Error('Error removing book');
         }
