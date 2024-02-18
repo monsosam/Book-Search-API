@@ -17,9 +17,6 @@ const server = new ApolloServer({
 	resolvers,
 });
 
-// Apply Apollo Server as middleware to Express app
-server.applyMiddleware({ app });
-
 // Create a new instance of an Apollo server with the GraphQL schema
 const startApolloServer = async () => {
 	await server.start();
