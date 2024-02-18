@@ -1,6 +1,5 @@
-const { gql } = require('@apollo/server');
 
-const typeDefs = gql`
+const typeDefs = `
   type Query {
     me: User
   }
