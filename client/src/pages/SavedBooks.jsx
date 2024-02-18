@@ -15,8 +15,8 @@ import { removeBookId } from '../utils/localStorage';
 
 const SavedBooks = () => {
   const { loading, data } = useQuery(GET_ME);
-  const [removeBook] = useMutation(REMOVE_BOOK);
-  const [userData, setUserData] = useState({});
+  const [deleteBook] = useMutation(REMOVE_BOOK);
+  const [userData] = data?.me || {};
 
   if (loading) {
     return <h2>LOADING...</h2>;
@@ -31,11 +31,18 @@ const SavedBooks = () => {
     }
 
     try {
-      const { data } = await removeBook({
+      await deleteBook({
         variables: { bookId },
+        update: cache => {
+          const existingData = cache.readQuery({ query: GET_ME });
+          const updatedBooks = existingData.me.savedBooks.filter(book => book.bookId !== bookId);
+          cache.writeQuery({
+            query: GET_ME,
+            data: { me: { ...existingData.me, savedBooks: updatedBooks } },
+          });
+        }
       });
 
-      setUserData(data.removeBook);
       removeBookId(bookId);
     } catch (err) {
       console.error(err);
@@ -61,7 +68,8 @@ const SavedBooks = () => {
             return (
               <Col md="4">
                 <Card key={book.bookId} border='dark'>
-                  {book.image ? <Card.Img src={book.image} alt={`The cover for ${book.title}`} variant='top' /> : null}
+                  {book.image ? <Card.Img 
+                  src={book.image} alt={`The cover for ${book.title}`} variant='top' /> : null}
                   <Card.Body>
                     <Card.Title>{book.title}</Card.Title>
                     <p className='small'>Authors: {book.authors}</p>

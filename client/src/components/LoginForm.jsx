@@ -7,14 +7,11 @@ import { LOGIN_USER } from '../utils/mutations';
 import Auth from '../utils/auth';
 
 const LoginForm = () => {
-  const [userFormData, setUserFormData] = useState({ 
-    email: '', 
-    password: '' 
-  });
-  const [validated] = useState(false);
+  const [userFormData, setUserFormData] = useState({ email: '', password: '' });
+  const [validated, setValidated] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
 
-  const [login] = useMutation(LOGIN_USER);
+  const [login, { error }] = useMutation(LOGIN_USER);
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
@@ -28,8 +25,9 @@ const LoginForm = () => {
     const form = event.currentTarget;
     if (form.checkValidity() === false) {
       event.preventDefault();
-      event.stopPropagation();
     }
+
+    setValidated(true);
 
     try {
       const { data } = await loginUser({
@@ -58,8 +56,8 @@ const LoginForm = () => {
         <Form.Group className='mb-3'>
           <Form.Label htmlFor='email'>Email</Form.Label>
           <Form.Control
-            type='text'
-            placeholder='Your email'
+            type='email'
+            placeholder='Enter your email'
             name='email'
             onChange={handleInputChange}
             value={userFormData.email}
