@@ -8,7 +8,7 @@ const { authMiddleware } = require('./utils/auth');
 const { typeDefs, resolvers } = require('./schemas');
 const db = require('./config/connection');
 
-const app = express();
+
 const PORT = process.env.PORT || 3001;
 
 // Set up Apollo Server
@@ -16,6 +16,8 @@ const server = new ApolloServer({
 	typeDefs,
 	resolvers,
 });
+
+const app = express();
 
 // Create a new instance of an Apollo server with the GraphQL schema
 const startApolloServer = async () => {
